@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Management System</title>
+    <style>
+        /* ============================================
+           DESIGN TOKENS & COLOR PALETTE
+           ============================================ */
+        :root {
+            /* Primary Colors */
+            --primary-blue: #1E40AF;
+            --primary-blue-light: #3B82F6;
+            --primary-blue-lighter: #60A5FA;
+            
+            /* Neutral Colors */
+            --white: #FFFFFF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            
+            /* Semantic Colors */
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --info: #3B82F6;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            
+            /* Typography */
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            /* Light Mode */
+            --bg-primary: var(--white);
+            --bg-secondary: var(--gray-50);
+            --bg-tertiary: var(--gray-100);
+            --text-primary: var(--gray-900);
+            --text-secondary: var(--gray-600);
+            --text-tertiary: var(--gray-500);
+            --border-color: var(--gray-200);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-primary: var(--gray-900);
+            --bg-secondary: var(--gray-800);
+            --bg-tertiary: var(--gray-700);
+            --text-primary: var(--white);
+            --text-secondary: var(--gray-300);
+            --text-tertiary: var(--gray-400);
+            --border-color: var(--gray-700);
+        }
+
+        /* ============================================
+           GLOBAL STYLES
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: var(--bg-secondary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ============================================
+           LAYOUT STRUCTURE
+           ============================================ */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, width 0.3s ease;
+            overflow-y: auto;
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar.collapsed {
+                width: 250px;
+            }
+        }
+
+        .sidebar-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .sidebar-logo-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-md) 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--primary-blue);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background-color: var(--bg-tertiary);
+            color: var(--primary-blue);
+            border-left-color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .nav-item-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .nav-item-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar.collapsed .nav-item-text {
+            display: none;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-md) var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            height: 70px;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-xl);
+            color: var(--text-primary);
+            padding: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border-radius: var(--radius-md);
+        }
+
+        .menu-toggle:hover {
+            transform: scale(1.1);
+            background-color: var(--bg-secondary);
+        }
+
+        .navbar-search {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-sm) var(--spacing-md);
+            gap: var(--spacing-sm);
+            flex: 1;
+            max-width: 400px;
+            transition: all 0.2s ease;
+        }
+
+        .navbar-search:focus-within {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-search {
+                max-width: 200px;
+            }
+        }
+
+        .navbar-search input {
+            border: none;
+            background: none;
+            outline: none;
+            color: var(--text-primary);
+            flex: 1;
+            font-size: var(--font-size-sm);
+        }
+
+        .navbar-search input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+            padding: var(--spacing-sm);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+        }
+
+        .icon-button:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--primary-blue);
+            transform: scale(1.1);
+        }
+
+        .theme-toggle {
+            position: relative;
+        }
+
+        .profile-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            cursor: pointer;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .profile-menu:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            transition: transform 0.2s ease;
+        }
+
+        .profile-menu:hover .profile-avatar {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-search {
+                display: none;
+            }
+
+            .profile-name {
+                display: none;
+            }
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-xl);
+            background-color: var(--bg-secondary);
+        }
+
+        /* Page Sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: var(--spacing-2xl);
+            animation: slideUp 0.4s ease;
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .page-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           BUTTON STYLES
+           ============================================ */
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-blue-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: var(--spacing-xs) var(--spacing-md);
+            font-size: var(--font-size-xs);
+        }
+
+        /* ============================================
+           CARD STYLES
+           ============================================ */
+        .card {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            animation: slideUp 0.4s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-blue-lighter);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* ============================================
+           GRID LAYOUTS
+           ============================================ */
+        .grid {
+            display: grid;
+            gap: var(--spacing-lg);
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: 1fr;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (max-width: 1200px) {
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid-cols-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-4,
+            .grid-cols-3,
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================
+           SCROLLBAR STYLING
+           ============================================ */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-md);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        /* Added styles for forms, tables, and modals */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: var(--font-size-sm);
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+            transform: scale(1.01);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            background: none;
+            border: none;
+            font-size: var(--font-size-lg);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+        }
+
+        .modal-close:hover {
+            background-color: var(--bg-secondary);
+            color: var(--error);
+            transform: rotate(90deg);
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: var(--bg-tertiary);
+        }
+
+        th {
+            padding: var(--spacing-md);
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            font-size: var(--font-size-sm);
+        }
+
+        td {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: var(--bg-secondary);
+            transform: scale(1.01);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .btn-edit {
+            background-color: var(--info);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-xs);
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit:hover {
+            background-color: var(--primary-blue-light);
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background-color: var(--error);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-xs);
+            transition: all 0.2s ease;
+        }
+
+        .btn-delete:hover {
+            background-color: #DC2626;
+            transform: scale(1.05);
+        }
+
+        .btn-view {
+            background-color: var(--success);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-xs);
+            transition: all 0.2s ease;
+        }
+
+        .btn-view:hover {
+            background-color: #059669;
+            transform: scale(1.05);
+        }
+
+        .btn-lg {
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: var(--font-size-base);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            animation: slideUp 0.4s ease;
+        }
+
+        .search-bar input {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-2xl);
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-lg);
+        }
+    </style>
+</head>
+<body>
+   
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="sidebar-logo">
+                    <span class="sidebar-logo-text">CMS</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <span class="nav-item-icon">📊</span>
+                    <span class="nav-item-text">Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="students">
+                    <span class="nav-item-icon">👥</span>
+                    <span class="nav-item-text">Students</span>
+                </a>
+                <a href="#" class="nav-item" data-page="teachers">
+                    <span class="nav-item-icon">👨‍🏫</span>
+                    <span class="nav-item-text">Teachers</span>
+                </a>
+                <a href="#" class="nav-item" data-page="courses">
+                    <span class="nav-item-icon">📚</span>
+                    <span class="nav-item-text">Courses</span>
+                </a>
+                <a href="#" class="nav-item" data-page="attendance">
+                    <span class="nav-item-icon">✅</span>
+                    <span class="nav-item-text">Attendance</span>
+                </a>
+                <a href="#" class="nav-item" data-page="grades">
+                    <span class="nav-item-icon">📈</span>
+                    <span class="nav-item-text">Grades</span>
+                </a>
+                <a href="#" class="nav-item" data-page="login">
+                    <span class="nav-item-icon">🚪</span>
+                    <span class="nav-item-text">Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Navbar -->
+            <nav class="navbar">
+                <div class="navbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        ☰
+                    </button>
+                    <div class="navbar-search">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Search...">
+                    </div>
+                </div>
+                <div class="navbar-right">
+                    <button class="icon-button">
+                        🔔
+                    </button>
+                    <button class="icon-button theme-toggle" id="themeToggle">
+                        🌙
+                    </button>
+                    <div class="profile-menu">
+                        <div class="profile-avatar">AD</div>
+                        <span class="profile-name">Admin</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content Area -->
+            <div class="content">
+                <!-- Dashboard Page -->
+                <section class="page-section active" id="dashboard-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Dashboard</h1>
+                        <p class="page-subtitle">Welcome back! Here's what's happening in your college.</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">Total Students</p>
+                                <p class="stat-value">1,234</p>
+                                <p style="font-size: var(--font-size-xs); color: var(--success); margin-top: var(--spacing-sm);">↑ 12% from last month</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">Active Teachers</p>
+                                <p class="stat-value">89</p>
+                                <p style="font-size: var(--font-size-xs); color: var(--success); margin-top: var(--spacing-sm);">↑ 5% from last month</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">Total Courses</p>
+                                <p class="stat-value">42</p>
+                                <p style="font-size: var(--font-size-xs); color: var(--success); margin-top: var(--spacing-sm);">↑ 8% from last month</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">Attendance Rate</p>
+                                <p class="stat-value">94%</p>
+                                <p style="font-size: var(--font-size-xs); color: var(--success); margin-top: var(--spacing-sm);">↑ 3% from last month</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Announcements & Events -->
+                    <div class="grid grid-cols-2" style="margin-top: var(--spacing-2xl);">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Recent Announcements</h2>
+                            </div>
+                            <div class="card-body">
+                                <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--spacing-md); background-color: var(--bg-secondary);">
+                                    <p style="font-weight: 600; margin-bottom: var(--spacing-xs);">Midterm Exams Schedule</p>
+                                    <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">Midterm exams will be held from Oct 15-25</p>
+                                    <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: var(--spacing-sm);">2 hours ago</p>
+                                </div>
+                                <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--spacing-md); background-color: var(--bg-secondary);">
+                                    <p style="font-weight: 600; margin-bottom: var(--spacing-xs);">Holiday Notice</p>
+                                    <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">Campus will be closed on Oct 10 (Gandhi Jayanti)</p>
+                                    <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: var(--spacing-sm);">1 day ago</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Upcoming Events</h2>
+                            </div>
+                            <div class="card-body">
+                                <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--spacing-md); background-color: var(--bg-secondary);">
+                                    <p style="font-weight: 600; margin-bottom: var(--spacing-xs);">Sports Day</p>
+                                    <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">October 20, 2024</p>
+                                    <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: var(--spacing-sm);">📍 Sports Complex</p>
+                                </div>
+                                <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary);">
+                                    <p style="font-weight: 600; margin-bottom: var(--spacing-xs);">Tech Fest 2024</p>
+                                    <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">October 25-27, 2024</p>
+                                    <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: var(--spacing-sm);">📍 Auditorium</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Students Page -->
+                <section class="page-section" id="students-page">
+                    <div class="page-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-2xl);">
+                        <div>
+                            <h1 class="page-title">Student Management</h1>
+                            <p class="page-subtitle">View and manage all student records</p>
+                        </div>
+                        <button class="btn btn-primary btn-lg" id="addStudentBtn">+ Add Student</button>
+                    </div>
+
+                    <div class="search-bar">
+                        <input type="text" id="studentSearchInput" placeholder="Search by name, email, or ID...">
+                    </div>
+
+                    <div class="card">
+                        <div class="table-container" id="studentTableContainer">
+                            <table id="studentTable">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Course</th>
+                                        <th>Enrollment</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Teachers Page -->
+                <section class="page-section" id="teachers-page">
+                    <div class="page-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-2xl);">
+                        <div>
+                            <h1 class="page-title">Teacher Management</h1>
+                            <p class="page-subtitle">Manage teacher details and schedules</p>
+                        </div>
+                        <button class="btn btn-primary btn-lg" id="addTeacherBtn">+ Add Teacher</button>
+                    </div>
+
+                    <div class="search-bar">
+                        <input type="text" id="teacherSearchInput" placeholder="Search by name or subject...">
+                    </div>
+
+                    <div class="card">
+                        <div class="table-container" id="teacherTableContainer">
+                            <table id="teacherTable">
+                                <thead>
+                                    <tr>
+                                        <th>Teacher ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Subject</th>
+                                        <th>Department</th>
+                                        <th>Qualification</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teacherTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Courses Page -->
+                <section class="page-section" id="courses-page">
+                    <div class="page-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-2xl);">
+                        <h1 class="page-title">Course Management</h1>
+                        <button class="btn btn-primary btn-lg" id="addCourseBtn">+ Add Course</button>
+                    </div>
+
+                    <div class="grid grid-cols-1" id="coursesGrid">
+                    </div>
+                </section>
+
+                <!-- Attendance Page -->
+                <section class="page-section" id="attendance-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Attendance System</h1>
+                        <p class="page-subtitle">Mark and view student attendance</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="form-group">
+                            <label>Select Date</label>
+                            <input type="date" id="attendanceDateInput">
+                        </div>
+                        <div class="form-group">
+                            <label>Select Class/Course</label>
+                            <select id="attendanceCourseSelect">
+                                <option value="">Choose a course...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: var(--spacing-lg);">
+                        <div class="table-container" id="attendanceTableContainer">
+                            <table id="attendanceTable">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>ID</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg" style="margin-top: var(--spacing-lg);">Mark Attendance</button>
+                </section>
+
+                <!-- Grades Page -->
+                <section class="page-section" id="grades-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Grade Management</h1>
+                        <p class="page-subtitle">View marks and performance analytics</p>
+                    </div>
+
+                    <div class="grid grid-cols-3" id="gradeAnalytics">
+                        <div class="card">
+                            <div class="card-body">
+                                <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">Average GPA</p>
+                                <p class="stat-value">3.45</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">Class Rank</p>
+                                <p class="stat-value">12/45</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">Pass Rate</p>
+                                <p class="stat-value">98%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: var(--spacing-lg);">
+                        <div class="card-header">
+                            <h2 class="card-title">Grade Distribution</h2>
+                        </div>
+                        <div class="table-container">
+                            <table id="gradesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Course</th>
+                                        <th>Marks</th>
+                                        <th>Grade</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gradesTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Login Page -->
+                <section class="page-section" id="login-page">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 500px;">
+                        <div class="card" style="width: 100%; max-width: 400px;">
+                            <div style="text-align: center; margin-bottom: var(--spacing-2xl);">
+                                <p style="font-size: var(--font-size-3xl); margin-bottom: var(--spacing-md);">CMS</p>
+                                <h1 style="font-size: var(--font-size-2xl); margin-bottom: var(--spacing-sm);">Login</h1>
+                                <p style="color: var(--text-secondary);">Sign in to your account</p>
+                            </div>
+
+                            <!-- Added login form with role selector -->
+                            <form id="loginForm" style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Select Role</label>
+                                    <select id="loginRole" style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary); cursor: pointer;">
+                                        <option value="admin">Admin</option>
+                                        <option value="student">Student</option>
+                                        <option value="teacher">Teacher</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Email Address</label>
+                                    <input type="email" id="loginEmail" placeholder="Enter your email" required style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary);">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Password</label>
+                                    <input type="password" id="loginPassword" placeholder="Enter your password" required style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary);">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Login</button>
+                            </form>
+
+                            <div style="margin-top: var(--spacing-lg); text-align: center; border-top: 1px solid var(--border-color); padding-top: var(--spacing-lg);">
+                                <p style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md);">Don't have an account?</p>
+                                <button id="signupToggle" class="btn btn-secondary" style="width: 100%; justify-content: center;">Create Account</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Signup Page -->
+                <section class="page-section" id="signup-page" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 600px;">
+                        <div class="card" style="width: 100%; max-width: 400px;">
+                            <div style="text-align: center; margin-bottom: var(--spacing-2xl);">
+                                <p style="font-size: var(--font-size-3xl); margin-bottom: var(--spacing-md);">CMS</p>
+                                <h1 style="font-size: var(--font-size-2xl); margin-bottom: var(--spacing-sm);">Create Account</h1>
+                                <p style="color: var(--text-secondary);">Join our college management system</p>
+                            </div>
+
+                            <!-- Added signup form with validation -->
+                            <form id="signupForm" style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Register As</label>
+                                    <select id="signupRole" style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary); cursor: pointer;">
+                                        <option value="student">Student</option>
+                                        <option value="teacher">Teacher</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Full Name</label>
+                                    <input type="text" id="signupName" placeholder="Enter your full name" required style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary);">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Email Address</label>
+                                    <input type="email" id="signupEmail" placeholder="Enter your email" required style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary);">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Password</label>
+                                    <input type="password" id="signupPassword" placeholder="At least 6 characters" required minlength="6" style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary);">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 500; color: var(--text-primary);">Confirm Password</label>
+                                    <input type="password" id="signupConfirmPassword" placeholder="Confirm your password" required minlength="6" style="width: 100%; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-secondary); color: var(--text-primary);">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Create Account</button>
+                            </form>
+
+                            <div style="margin-top: var(--spacing-lg); text-align: center; border-top: 1px solid var(--border-color); padding-top: var(--spacing-lg);">
+                                <p style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md);">Already have an account?</p>
+                                <button id="loginToggle" class="btn btn-secondary" style="width: 100%; justify-content: center;">Sign In</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Student Modal -->
+        <div class="modal" id="studentModal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="document.getElementById('studentModal').classList.remove('active')">&times;</button>
+                <div class="modal-header">Add/Edit Student</div>
+                <form id="studentForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="studentFirstName" placeholder="First name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="studentLastName" placeholder="Last name" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="studentEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="studentPhone" placeholder="Phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Course</label>
+                        <select id="studentCourse" required>
+                            <option value="">Select a course</option>
+                            <option value="CS101">Computer Science 101</option>
+                            <option value="BUS201">Business Administration 201</option>
+                            <option value="ENG301">Engineering 301</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">Save Student</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Teacher Modal -->
+        <div class="modal" id="teacherModal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="document.getElementById('teacherModal').classList.remove('active')">&times;</button>
+                <div class="modal-header">Add/Edit Teacher</div>
+                <form id="teacherForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="teacherFirstName" placeholder="First name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="teacherLastName" placeholder="Last name" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="teacherEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" id="teacherSubject" placeholder="Subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="teacherDepartment" required>
+                            <option value="">Select a department</option>
+                            <option value="CS">Computer Science</option>
+                            <option value="ENGG">Engineering</option>
+                            <option value="BUS">Business</option>
+                            <option value="ARTS">Arts</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Qualification</label>
+                        <input type="text" id="teacherQualification" placeholder="e.g., M.Tech, PhD" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">Save Teacher</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
